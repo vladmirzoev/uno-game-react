@@ -1,0 +1,27 @@
+@import 'variables';
+
+.card {
+    height: $card-height;
+    width: $card-width;
+        background-color: #ec6ec6;
+    &.red{
+        background-color: $colour-red;
+    }
+
+    &.yellow{
+        background-color: $colour-yellow;
+    }
+
+    &.blue{
+        background-color: $colour-blue;
+    }
+
+    &.green{
+        background-color: $colour-green;
+    }
+
+    &.black{
+        background-color: black;
+        color: white;
+    }
+}

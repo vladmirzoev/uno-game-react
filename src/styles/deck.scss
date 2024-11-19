@@ -1,0 +1,34 @@
+@import 'variables';
+
+.deck {
+  margin-bottom: 30px;
+  text-align: center;
+
+  &__cards {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 5px;
+    max-height: 200px;
+    overflow-y: auto;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-bottom: 10px;
+  }
+
+  &__draw-button {
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: $colour-blue;
+    color: $colour-white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+
+    &:hover {
+      background-color: darken($colour-blue, 10%);
+    }
+  }
+}
