@@ -2,6 +2,10 @@ import React from 'react';
 import Card from './Card';
 
 const Deck = ({ cards, onDraw }) => {
+  const isEmpty = () => {
+    if (this.length === 1) return true;
+    return false;
+  }
   return (
     <div className="deck">
       <div className="deck__cards">

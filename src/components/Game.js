@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { createDeck } from "../utils/deck"
+import { createDeck, drawCards, reshuffleDiscardPile } from "../utils/deck"
 import Card from "./Card";
 import React from "react";
 
@@ -20,18 +20,41 @@ export const Game = () => {
 
     const startGame = () => {
         const newDeck = createDeck();
-        const { drawnCards: player1Hand, remainingDeck: }
-        const player1Hand = newDeck.splice(0, 7);
-        const player2Hand = newDeck.splice(0, 7);
-        const firstCard = newDeck.splice(0, 1)[0];
+        const { drawnCards: player1Hand, remainingDeck: deckAfterPlayer1 } = drawCards(newDeck, 7);
+        const { drawnCards: player2Hand, remainingDeck: deckAfterPlayer2 } = drawCards(deckAfterPlayer1, 7);
+        const { drawnCards: [firstCard], remainingDeck: finalDeck } = drawCards(deckAfterPlayer2, 1);
+        
 
-        setDeck(newDeck);
+        setDeck(finalDeck);
         setPlayers([
             { id: 1, hand: player1Hand },
             { id: 2, hand: player2Hand },
         ])
         setDiscardPile([firstCard]);
     }
+
+    const handleDrawCard = () => {
+        if (deck.isEmpty) {
+            const updatedDeck = reshuffleDiscardPile(discardPile);
+            setDeck(updatedDeck.slice(1));
+            setDiscardPile(updatedDeck[0]);
+        }
+
+        const { drawnCards: [drawCard], remainingDeck } = drawCards(deck, 1);
+        const updatedPlayers = [...players];
+        updatedPlayers[currentPlayer].hand.push(drawCard);
+        setPlayers(updatedPlayers);
+        setDeck(remainingDeck);
+        nextTurn();
+    };
+
+    const nextTurn = () => {
+        setCurrentPlayer((prevPlayer) => {
+          // Calculate the next player index
+          const nextPlayer = (prevPlayer + direction + players.length) % players.length;
+          return nextPlayer;
+        });
+      };
 
     const cardsList = deck.map( card => 
         <li>{card}</li>
@@ -61,7 +84,7 @@ export const Game = () => {
                     <h2>Player {player.id}</h2>
                     <div className="game__hand">
                         {player.hand.map((card, cardIndex) => (
-                            <Card key={cardIndex} color={card.color} value={card.value} />
+                            <Card key={cardIndex} colour={card.color} value={card.value} />
                         ))}
                     </div>
                 </div>
@@ -70,7 +93,7 @@ export const Game = () => {
             <div className="game__discard-pile">
                 <h3>Discard Pile</h3>
                 {discardPile.length > 0 && (
-                <Card color={discardPile[discardPile.length - 1].color} value={discardPile[discardPile.length - 1].value} />
+                <Card colour={discardPile[discardPile.length - 1].colour} value={discardPile[discardPile.length - 1].value} />
                 )}
             </div>
         </div>
