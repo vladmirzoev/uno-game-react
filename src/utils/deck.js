@@ -25,7 +25,7 @@ export const createDeck = () => {
         deck.push(Card({ colour: "black", value: "+4"}));
     }
     
-    return shuffle(deck);
+    return deck;
 }
 
 // const shuffle = (deckArray) => {
@@ -63,8 +63,8 @@ export const drawCards = (deck, numCards) => {
     };
 };
   
-export const reshuffleDiscardPile = (discardPile) => {
-    const topCard = discardPile[discardPile.length - 1];
-    const reshuffledDeck = shuffle(discardPile.slice(0, -1));
-    return [topCard, ...reshuffledDeck];
-};
+// export const reshuffleDiscardPile = (discardPile) => {
+//     const topCard = discardPile[discardPile.length - 1];
+//     const reshuffledDeck = shuffle(discardPile.slice(0, -1));
+//     return [topCard, ...reshuffledDeck];
+// };
