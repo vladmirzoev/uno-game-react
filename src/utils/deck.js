@@ -1,6 +1,6 @@
 import Card from "../components/Card";
 
-const colours = ["red", "yellow", "blue", "green"];
+const colours = ["yellow", "blue", "red", "green"];
 const values = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+2', 'Skip', 'Reverse']
 
 export const createDeck = () => {
@@ -10,19 +10,19 @@ export const createDeck = () => {
         for (let value of values) {
             switch (value) {
                 case '0':
-                    deck.push(Card({ colour, value }));
+                    deck.push({ colour, value });
                     break;
                 default:
-                    deck.push(Card({ colour, value }));
-                    deck.push(Card({ colour, value }));
+                    deck.push({ colour, value });
+                    deck.push({ colour, value });
                     break;
             }
         }
     }
 
     for (let i = 0; i < 4; i++) {
-        deck.push(Card({ colour: "black", value: "Change Colour"}));
-        deck.push(Card({ colour: "black", value: "+4"}));
+        deck.push({ colour: "black", value: "Change Colour"});
+        deck.push({ colour: "black", value: "+4"});
     }
     
     return deck;
@@ -55,6 +55,19 @@ export const shuffle = (array) => {
     }
     return array;
 };
+
+// export const shuffle = (array) => {
+//     for (let i = array.length - 1; i > 0; i--) {
+//       let j = Math.floor(Math.random() * (i + 1)); // random index from 0 to i
+  
+//       // swap elements array[i] and array[j]
+//       // we use "destructuring assignment" syntax to achieve that
+//       // you'll find more details about that syntax in later chapters
+//       // same can be written as:
+//       // let t = array[i]; array[i] = array[j]; array[j] = t
+//       [array[i], array[j]] = [array[j], array[i]];
+//     }
+// }
 
 export const drawCards = (deck, numCards) => {
     return {
