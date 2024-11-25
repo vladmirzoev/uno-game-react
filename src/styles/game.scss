@@ -1,5 +1,7 @@
 @import 'variables';
-
+h1{
+  font-size: 18px;
+}
 .game {
   max-width: 1000px;
   margin: 0 auto;
@@ -67,4 +69,29 @@
       background-color: darken($colour-blue, 10%);
     }
   }
+}
+
+.player-hand {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.card {
+  border: 1px solid #000;
+  padding: 10px;
+  cursor: pointer;
+}
+
+.card.selected {
+  // background-color: #e0e0e0;
+  border: 6px solid #df4a00;
+}
+
+.game-controls {
+  margin-bottom: 20px;
+}
+
+.game-controls button {
+  margin-right: 10px;
 }

@@ -9,7 +9,7 @@ const CardDisplay = ({ cards, title }) => {
         {cards.map((card, index) => (
           <div key={index} className="card-item">
             <Card colour={card.colour} value={card.value} />
-            <p>{card.colour} | {card.value}</p>
+            {/* <p>{card.colour} | {card.value}</p> */}
           </div>
         ))}
       </div>
