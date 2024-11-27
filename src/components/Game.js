@@ -4,20 +4,21 @@ import Card from "./Card";
 import React from "react";
 import { shuffle } from "../utils/deck";
 import CardDisplay from "./CardDisplay";
+import ColourSelector from './ColourSelector'
 
 export const Game = () => {
     const [gameOver, setGamerOver] = useState(true);
     const [winner, setWinner] = useState('');
     const [players, setPlayers] = useState([]);
-    const [player1Hand, setPlayer1Hand] = useState([]);
-    const [player2Hand, setPlayer2Hand] = useState([]);
     const [turn, setTurn] = useState(0);
     const [discardPile, setDiscardPile] = useState([]);
     const [activePile, setActivePile] = useState([]);
     const [currentCard, setCurrentCard] = useState(null);
-    const [currentColour, setCurrentColour] = useState('');
-    const [currentValue, setCurrentValue] = useState('');
     const [selectedCard, setSelectedCard] = useState(null);
+    const [selectingColour, setSelectingColour] = useState(false);
+    const [wildCardToPlay, setWildCardToPlay] = useState(null);
+
+
 
     // const playGame = () => {
     //   while (!isGameOver){
@@ -25,22 +26,30 @@ export const Game = () => {
     //   }
     // }
     const isGameOver = () => {
-      if (isWinner(turn)){
+      if (isWinner()){
+        setWinner(`Player ${turn + 1}`);
+        setGamerOver(true);
+        alert('game over!')
         return true;
       }
+      return false;
     }
-    const isWinner = (playerIndex) => {
-      if (players[playerIndex].length === 0) {
-        console.log('There is a WINNER!', `\nCOngrats, player ${playerIndex+1}`)
+    const isWinner = () => {
+      if (players[turn].length === 0) {
+        console.log('There is a WINNER!', `\nCongrats, player ${turn+1}`)
         return true;
       }
+      return false;
     }
 
     const nextPlayer = () => {
-      setTurn((prevTurn) => {
-        const nextPlayer = prevTurn + 1;
-        return nextPlayer % players.length;
-      })
+      if (!isGameOver()) {
+        
+        setTurn((prevTurn) => {
+          const nextPlayer = prevTurn + 1;
+          return nextPlayer % players.length;
+        })
+      }
     }
 
     const initializeGame = useCallback(() => {
@@ -48,7 +57,7 @@ export const Game = () => {
       const deck = createDeck();
       shuffle(deck);
 
-      const numPlayers = 2; //to be changed
+      const numPlayers = 3; //to be changed
       const initialHands = [];
 
       //dealing cards to each player
@@ -92,7 +101,6 @@ export const Game = () => {
           if (selectedCard !== null){
             playCard(turn, selectedCard);
             setSelectedCard(null);
-            nextPlayer();
           }
           break;
         default:
@@ -108,7 +116,7 @@ export const Game = () => {
         const drawnCard = newPile.pop();
         setPlayers((prevPlayers) => {
           const updatedPlayers = [...prevPlayers];
-          updatedPlayers[turn] = [...updatedPlayers[turn], drawnCard];
+          updatedPlayers[playerIndex] = [...updatedPlayers[playerIndex], drawnCard];
           return updatedPlayers;
         });
         console.log('DRAWING CARD')
@@ -125,45 +133,111 @@ export const Game = () => {
         console.log('Invalid Move. Card returned to player\'s hand');
         return;
       }
+    
+      if (playedCard.colour === 'black') {
+        handleWildCard(playerIndex, cardIndex, playedCard);
+        return;
+      }
+    
+      completeCardPlay(playerIndex, cardIndex, playedCard);
+    };
+
+    // const completeCardPlay = (playerIndex, cardIndex, playedCard, selectedColour = null) => {
+    //   setPlayers((prevPlayers) => {
+    //     const newPlayers = prevPlayers.map((player, index) => {
+    //       if (index === playerIndex) {
+    //         return player.filter((_, i) => i !== cardIndex);
+    //       }
+    //       return player;
+    //     });
+    //     return newPlayers;
+    //   });
+    
+    //   setDiscardPile((prevDiscardPile) => {
+    //     return prevDiscardPile.concat(playedCard);
+    //   });
+    
+    //   if (selectedColour) {
+    //     // Create a new object based on playedCard, but with the colour changed
+    //     const updatedCard = {
+    //         ...playedCard,
+    //         colour: selectedColour
+    //     };
+    //     setCurrentCard(updatedCard);
+    // } else {
+    //     // If no colour was selected, use the original playedCard
+    //     setCurrentCard(playedCard);
+    // }
+    //   console.log(`Player: ${playerIndex+1} \nPlayed: ${playedCard.colour} | ${playedCard.value}`);
+    
+    //   switch (playedCard.value) {
+    //     case "skip":
+    //       handleSkip();
+    //       break;
+    //     case "+2":
+    //       handleDrawTwo();
+    //       break;
+    //     case "wild":
+    //     case "wild+4":
+    //       if (selectedColour) {
+    //         console.log(`Wild card played. New colour: ${selectedColour}`);
+    //         nextPlayer();
+    //       }
+    //       break;
+    //     default:
+    //       nextPlayer();
+    //   }
+    // };
+    const completeCardPlay = (playerIndex, cardIndex, playedCard, selectedColor = null) => {
+      console.log('completeCardPlay called with:', { playerIndex, cardIndex, playedCard, selectedColor });
+    
+      if (playedCard === undefined) {
+        console.error('playedCard is undefined');
+        return;
+      }
+    
       setPlayers((prevPlayers) => {
         const newPlayers = prevPlayers.map((player, index) => {
           if (index === playerIndex) {
-            // Remove the played card from this player's hand
             return player.filter((_, i) => i !== cardIndex);
           }
-          return player; // Return other players' hands unchanged
+          return player;
         });
         return newPlayers;
       });
-
-      setDiscardPile((prevDiscardPile) => {
-        return prevDiscardPile.concat(playedCard);
-      });
-
-      //update the active card
-      setCurrentCard(playedCard);
-      //documentating the move
-      console.log(`Player: ${playerIndex+1} \nPlayed: ${playedCard.colour} | ${playedCard.value}`);
-
-
-      //   const updatedPlayers = [...prevPlayers];
-      //   const playedCard = updatedPlayers[playerIndex].splice(cardIndex, 1)[0];
-      //   if (isValidMove(playedCard)) {
-      //     setDiscardPile((prevDiscardPile) => {
-      //       return prevDiscardPile.concat(playedCard);
-      //     });
-      //     //update the active card
-      //     setCurrentCard(playedCard);
-      //     //documentating the move
-      //     console.log(`Player: ${playerIndex+1} \nPlayed: ${playedCard.colour} | ${playedCard.value}`);
-
-      //   } else {
-          
-      //   }
-      //   return updatedPlayers;
-      // })
+    
+      const updatedCard = selectedColor ? {...playedCard, colour: selectedColor} : playedCard;
+      setDiscardPile((prevDiscardPile) => [...prevDiscardPile, updatedCard]);
+      setCurrentCard(updatedCard);
+    
+      console.log(`Player: ${playerIndex+1} \nPlayed: ${updatedCard.colour} | ${updatedCard.value}`);
+    
+      // Handle special cards
+      switch (updatedCard.value) {
+        case "skip":
+          handleSkip();
+          break;
+        case "+2":
+          handleDrawTwo();
+          break;
+        case "Change Colour":
+          if (selectedColor) {
+            console.log(`Wild card played. New color: ${selectedColor}`);
+            nextPlayer();
+          }
+          break;
+        case "+4":
+          if (selectedColor) {
+            console.log(`Wild card played. New color: ${selectedColor}`);
+            nextPlayer();
+          }
+          handleDrawTwo();
+          handleDrawTwo();
+          break;
+        default:
+          nextPlayer();
+      }
     };
-
     console.log('Discard size: ' + discardPile.length);
 
 
@@ -175,10 +249,55 @@ export const Game = () => {
       }
     }
 
-    const isValidMove = (card) => {
-      //implement logic here
-      return true;
+    // Card-specific Functionality
+    const handleSkip = () => {
+      console.log('Player is skipping their turn');
+      nextPlayer();
+      nextPlayer();
     }
+
+    const handleDrawTwo = () => {
+      const nextPlayerIndex = (turn + 1) % players.length;
+      console.log(`Player ${nextPlayerIndex + 1} draws 2 cards`);
+      drawCard(nextPlayerIndex);
+      drawCard(nextPlayerIndex);
+      handleSkip();
+    }
+
+    
+    const handleWildCard = (playerIndex, cardIndex, card) => {
+      setWildCardToPlay({ playerIndex, cardIndex, card });
+      setSelectingColour(true);
+    };
+
+    // Basic card validation
+
+    const isColourFit = (card) => {
+      if (card.colour === currentCard.colour) return true;
+      return false;
+    }
+
+    const isValueFit = (card) => {
+      if (card.value === currentCard.value) return true;
+      return false;
+    }
+    
+    const isWild = (card) => {
+      if (card.colour === 'black') return true;
+      return false;
+    }
+
+    // Move Validation
+
+    const isValidMove = (card) => {
+      if (isColourFit(card) || isValueFit(card) || isWild(card)) {
+        return true;
+      }
+      alert('INVALID MOVE!')
+      return false;
+    }
+
+    // UI 
 
     const handleCardClick = (cardIndex) => {
       setSelectedCard(cardIndex);
@@ -210,12 +329,23 @@ export const Game = () => {
                     ))}
                 </div>
             </div>
+            
+            {selectingColour && wildCardToPlay && (
+              <ColourSelector 
+                onColourSelect={(selectedColour) => {
+                  setSelectingColour(false);
+                  console.log('Calling completeCardPlay with:', { ...wildCardToPlay, selectedColour });
+                  completeCardPlay(wildCardToPlay.playerIndex, wildCardToPlay.cardIndex, wildCardToPlay.card, selectedColour);
+                  setWildCardToPlay(null);
+                }} 
+              />
+            )}
           <CardDisplay cards={discardPile} title="Discard Pile" />
           <div className="current-card">
               <h3>Current Card</h3>
               {currentCard && (
                 <>
-                  <p>Color: {currentCard.colour}</p>
+                  <p>Colour: {currentCard.colour}</p>
                   <p>Value: {currentCard.value}</p>
                 </>
               )}
