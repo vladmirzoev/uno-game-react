@@ -7,7 +7,7 @@ import CardDisplay from "./CardDisplay";
 import ColourSelector from './ColourSelector'
 
 export const Game = () => {
-    const [gameOver, setGamerOver] = useState(true);
+    const [gameOver, setGamerOver] = useState(false);
     const [winner, setWinner] = useState('');
     const [players, setPlayers] = useState([]);
     const [turn, setTurn] = useState(0);
@@ -17,20 +17,13 @@ export const Game = () => {
     const [selectedCard, setSelectedCard] = useState(null);
     const [selectingColour, setSelectingColour] = useState(false);
     const [wildCardToPlay, setWildCardToPlay] = useState(null);
+    const [direction, setDirection] = useState(1);
 
-
-
-    // const playGame = () => {
-    //   while (!isGameOver){
-        
-    //   }
-    // }
-    const isGameOver = () => {
-      if (isWinner()){
-        setWinner(`Player ${turn + 1}`);
-        setGamerOver(true);
-        alert('game over!')
-        return true;
+    const hasWinner = () => {
+      for (let i = 0; i < players.length; i++) {
+        if (isWinner(players[i])){
+          return true;
+        }
       }
       return false;
     }
@@ -41,16 +34,26 @@ export const Game = () => {
       }
       return false;
     }
+    
+    const isGameOver = () => {
+      if (isWinner(turn)){
+        setWinner(`Player ${turn + 1}`);
+        setGamerOver(true);
+        alert('game over!')
+        console.log("WINNER IS: ", winner);
+        return true;
+      }
+      return false;
+    }
 
     const nextPlayer = () => {
       if (!isGameOver()) {
-        
         setTurn((prevTurn) => {
-          const nextPlayer = prevTurn + 1;
-          return nextPlayer % players.length;
-        })
+          const nextPlayer = prevTurn + direction;
+          return (nextPlayer + players.length) % players.length;
+        });
       }
-    }
+    };
 
     const initializeGame = useCallback(() => {
       console.log('Starting the game!');
@@ -62,7 +65,7 @@ export const Game = () => {
 
       //dealing cards to each player
       for (let i = 0; i < numPlayers; i++) {
-        initialHands.push(deck.splice(0, 7));
+        initialHands.push(deck.splice(0, 2));
       }
       console.log("Players' hands: ", initialHands);
 
@@ -88,6 +91,11 @@ export const Game = () => {
     };
 
     const makeMove = (action) => {
+      console.log("A player is winner? ", isWinner());
+      if (hasWinner()) {
+        alert('GAME OVER!')
+        return;
+      }
       if (!isCurrentPlayer){
         alert("Sorry, it's not your turn!");
         return;
@@ -106,6 +114,8 @@ export const Game = () => {
         default:
           return;
       }
+      console.log("A player is winner? ", isWinner());
+      console.log("Is game over: ", gameOver);
     }
 
     const drawCard = (playerIndex) => {
@@ -138,8 +148,13 @@ export const Game = () => {
         handleWildCard(playerIndex, cardIndex, playedCard);
         return;
       }
-    
+     
       completeCardPlay(playerIndex, cardIndex, playedCard);
+      // if (players[playerIndex].length === 0) {
+      //   setWinner(players[playerIndex]);
+      //   isGameOver();
+      // }
+      isWinner();
     };
 
     // const completeCardPlay = (playerIndex, cardIndex, playedCard, selectedColour = null) => {
@@ -203,22 +218,39 @@ export const Game = () => {
           }
           return player;
         });
+    
+        // Check for winner immediately after updating players
+        if (newPlayers[playerIndex].length === 0) {
+          setTurn(playerIndex); // Ensure the winning player is set as the current player
+          if (isWinner()) {
+            isGameOver();
+            return newPlayers; // Return early if game is over
+          }
+        }
+    
         return newPlayers;
       });
+    
+      // ... rest of the function ...
+    
+      // Only proceed with next player actions if the game isn't over
     
       const updatedCard = selectedColor ? {...playedCard, colour: selectedColor} : playedCard;
       setDiscardPile((prevDiscardPile) => [...prevDiscardPile, updatedCard]);
       setCurrentCard(updatedCard);
     
       console.log(`Player: ${playerIndex+1} \nPlayed: ${updatedCard.colour} | ${updatedCard.value}`);
-    
+      
       // Handle special cards
       switch (updatedCard.value) {
-        case "skip":
+        case "Skip":
           handleSkip();
           break;
         case "+2":
           handleDrawTwo();
+          break;
+        case "Reverse":
+          handleReverse();
           break;
         case "Change Colour":
           if (selectedColor) {
@@ -236,6 +268,9 @@ export const Game = () => {
           break;
         default:
           nextPlayer();
+      }
+      if (isWinner()) {
+        isGameOver();
       }
     };
     console.log('Discard size: ' + discardPile.length);
@@ -262,6 +297,21 @@ export const Game = () => {
       drawCard(nextPlayerIndex);
       drawCard(nextPlayerIndex);
       handleSkip();
+    }
+
+    const handleReverse = () => {
+      console.log('Reversing direction of play');
+      setDirection(prevDirection => prevDirection * -1);
+      
+      // Calculate the next player based on the new direction
+      
+      setTurn((prevTurn) => {
+        const newTurn = (prevTurn + direction) % players.length;
+        if (newTurn < 0) {
+          return players.length + newTurn;
+        }
+        return newTurn;
+      });
     }
 
     
