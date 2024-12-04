@@ -299,21 +299,22 @@ export const Game = () => {
       handleSkip();
     }
 
+    useEffect(() => {
+      if (direction !== 1) {
+        setTurn((prevTurn) => {
+          const newTurn = (prevTurn + direction) % players.length;
+          if (newTurn < 0) {
+            return players.length + newTurn;
+          }
+          return newTurn;
+        });
+      }
+    }, [direction, players.length]);
+    
     const handleReverse = () => {
       console.log('Reversing direction of play');
       setDirection(prevDirection => prevDirection * -1);
-      
-      // Calculate the next player based on the new direction
-      
-      setTurn((prevTurn) => {
-        const newTurn = (prevTurn + direction) % players.length;
-        if (newTurn < 0) {
-          return players.length + newTurn;
-        }
-        return newTurn;
-      });
-    }
-
+    };
     
     const handleWildCard = (playerIndex, cardIndex, card) => {
       setWildCardToPlay({ playerIndex, cardIndex, card });
