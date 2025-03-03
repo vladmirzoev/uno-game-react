@@ -3,6 +3,7 @@
 .card {
     height: $card-height;
     width: $card-width;
+    border-radius: 20px;
         background-color: #8b8383;
     &.red{
         background-color: $colour-red;
@@ -29,5 +30,6 @@
     &-list{
         display: flex;
         flex-wrap: wrap;
+        gap: 20px;
     }
 }

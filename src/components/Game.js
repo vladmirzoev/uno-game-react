@@ -1,5 +1,5 @@
 import { act, useCallback, useEffect, useState } from "react";
-import { createDeck } from "../utils/deck"
+import { createDeck } from "../utils/deck";
 import Card from "./Card";
 import React from "react";
 import { shuffle } from "../utils/deck";
@@ -19,35 +19,12 @@ export const Game = () => {
     const [wildCardToPlay, setWildCardToPlay] = useState(null);
     const [direction, setDirection] = useState(1);
 
-    const hasWinner = () => {
-      for (let i = 0; i < players.length; i++) {
-        if (isWinner(players[i])){
-          return true;
-        }
-      }
-      return false;
-    }
-    const isWinner = () => {
-      if (players[turn].length === 0) {
-        console.log('There is a WINNER!', `\nCongrats, player ${turn+1}`)
-        return true;
-      }
-      return false;
-    }
-    
-    const isGameOver = () => {
-      if (isWinner(turn)){
-        setWinner(`Player ${turn + 1}`);
-        setGamerOver(true);
-        alert('game over!')
-        console.log("WINNER IS: ", winner);
-        return true;
-      }
-      return false;
+    const isWinner = (player) => {
+      return player.length === 0;
     }
 
     const nextPlayer = () => {
-      if (!isGameOver()) {
+      if (!gameOver) { // Only advance turn if the game is not over
         setTurn((prevTurn) => {
           const nextPlayer = prevTurn + direction;
           return (nextPlayer + players.length) % players.length;
@@ -65,7 +42,7 @@ export const Game = () => {
 
       //dealing cards to each player
       for (let i = 0; i < numPlayers; i++) {
-        initialHands.push(deck.splice(0, 2));
+        initialHands.push(deck.splice(0, 7));
       }
       console.log("Players' hands: ", initialHands);
 
@@ -91,8 +68,7 @@ export const Game = () => {
     };
 
     const makeMove = (action) => {
-      console.log("A player is winner? ", isWinner());
-      if (hasWinner()) {
+      if (gameOver) {
         alert('GAME OVER!')
         return;
       }
@@ -114,8 +90,6 @@ export const Game = () => {
         default:
           return;
       }
-      console.log("A player is winner? ", isWinner());
-      console.log("Is game over: ", gameOver);
     }
 
     const drawCard = (playerIndex) => {
@@ -150,59 +124,8 @@ export const Game = () => {
       }
      
       completeCardPlay(playerIndex, cardIndex, playedCard);
-      // if (players[playerIndex].length === 0) {
-      //   setWinner(players[playerIndex]);
-      //   isGameOver();
-      // }
-      isWinner();
     };
 
-    // const completeCardPlay = (playerIndex, cardIndex, playedCard, selectedColour = null) => {
-    //   setPlayers((prevPlayers) => {
-    //     const newPlayers = prevPlayers.map((player, index) => {
-    //       if (index === playerIndex) {
-    //         return player.filter((_, i) => i !== cardIndex);
-    //       }
-    //       return player;
-    //     });
-    //     return newPlayers;
-    //   });
-    
-    //   setDiscardPile((prevDiscardPile) => {
-    //     return prevDiscardPile.concat(playedCard);
-    //   });
-    
-    //   if (selectedColour) {
-    //     // Create a new object based on playedCard, but with the colour changed
-    //     const updatedCard = {
-    //         ...playedCard,
-    //         colour: selectedColour
-    //     };
-    //     setCurrentCard(updatedCard);
-    // } else {
-    //     // If no colour was selected, use the original playedCard
-    //     setCurrentCard(playedCard);
-    // }
-    //   console.log(`Player: ${playerIndex+1} \nPlayed: ${playedCard.colour} | ${playedCard.value}`);
-    
-    //   switch (playedCard.value) {
-    //     case "skip":
-    //       handleSkip();
-    //       break;
-    //     case "+2":
-    //       handleDrawTwo();
-    //       break;
-    //     case "wild":
-    //     case "wild+4":
-    //       if (selectedColour) {
-    //         console.log(`Wild card played. New colour: ${selectedColour}`);
-    //         nextPlayer();
-    //       }
-    //       break;
-    //     default:
-    //       nextPlayer();
-    //   }
-    // };
     const completeCardPlay = (playerIndex, cardIndex, playedCard, selectedColor = null) => {
       console.log('completeCardPlay called with:', { playerIndex, cardIndex, playedCard, selectedColor });
     
@@ -218,30 +141,26 @@ export const Game = () => {
           }
           return player;
         });
-    
-        // Check for winner immediately after updating players
+
         if (newPlayers[playerIndex].length === 0) {
-          setTurn(playerIndex); // Ensure the winning player is set as the current player
-          if (isWinner()) {
-            isGameOver();
-            return newPlayers; // Return early if game is over
+          if (isWinner(newPlayers[playerIndex])) {
+            setGamerOver(true);
+            setWinner(`Player ${playerIndex + 1}`);
+            alert('game over!')
+            console.log("WINNER IS: ", winner);
+            return newPlayers;
           }
         }
     
         return newPlayers;
       });
-    
-      // ... rest of the function ...
-    
-      // Only proceed with next player actions if the game isn't over
-    
+
       const updatedCard = selectedColor ? {...playedCard, colour: selectedColor} : playedCard;
       setDiscardPile((prevDiscardPile) => [...prevDiscardPile, updatedCard]);
       setCurrentCard(updatedCard);
     
       console.log(`Player: ${playerIndex+1} \nPlayed: ${updatedCard.colour} | ${updatedCard.value}`);
       
-      // Handle special cards
       switch (updatedCard.value) {
         case "Skip":
           handleSkip();
@@ -252,7 +171,7 @@ export const Game = () => {
         case "Reverse":
           handleReverse();
           break;
-        case "Change Colour":
+        case "wild":
           if (selectedColor) {
             console.log(`Wild card played. New color: ${selectedColor}`);
             nextPlayer();
@@ -263,18 +182,12 @@ export const Game = () => {
             console.log(`Wild card played. New color: ${selectedColor}`);
             nextPlayer();
           }
-          handleDrawTwo();
-          handleDrawTwo();
+          handleDrawFour();
           break;
         default:
           nextPlayer();
       }
-      if (isWinner()) {
-        isGameOver();
-      }
     };
-    console.log('Discard size: ' + discardPile.length);
-
 
     const reshuffleDeck = (array) => {
       if (array.length === 0) {
@@ -284,7 +197,6 @@ export const Game = () => {
       }
     }
 
-    // Card-specific Functionality
     const handleSkip = () => {
       console.log('Player is skipping their turn');
       nextPlayer();
@@ -296,7 +208,17 @@ export const Game = () => {
       console.log(`Player ${nextPlayerIndex + 1} draws 2 cards`);
       drawCard(nextPlayerIndex);
       drawCard(nextPlayerIndex);
-      handleSkip();
+      nextPlayer(); // Skip the next player's turn
+    }
+
+    const handleDrawFour = () => {
+      const nextPlayerIndex = (turn + 1) % players.length;
+      console.log(`Player ${nextPlayerIndex + 1} draws 4 cards`);
+      drawCard(nextPlayerIndex);
+      drawCard(nextPlayerIndex);
+      drawCard(nextPlayerIndex);
+      drawCard(nextPlayerIndex);
+      nextPlayer(); // Skip the next player's turn
     }
 
     useEffect(() => {
@@ -321,8 +243,6 @@ export const Game = () => {
       setSelectingColour(true);
     };
 
-    // Basic card validation
-
     const isColourFit = (card) => {
       if (card.colour === currentCard.colour) return true;
       return false;
@@ -338,8 +258,6 @@ export const Game = () => {
       return false;
     }
 
-    // Move Validation
-
     const isValidMove = (card) => {
       if (isColourFit(card) || isValueFit(card) || isWild(card)) {
         return true;
@@ -347,8 +265,6 @@ export const Game = () => {
       alert('INVALID MOVE!')
       return false;
     }
-
-    // UI 
 
     const handleCardClick = (cardIndex) => {
       setSelectedCard(cardIndex);
@@ -363,9 +279,6 @@ export const Game = () => {
             <button onClick={() => makeMove('draw')} >DRAW</button>
             <button onClick={() => makeMove('play')} disabled={selectedCard === null}>PLAY CARD</button>
           </div>
-          {/* <CardDisplay cards={players[turn]} title={`Hand of Player ${turn+1}`}/> */}
-          {/* <CardDisplay cards={player1Hand} title="Player 1 Hand" />
-          <CardDisplay cards={player2Hand} title="Player 2 Hand" /> */}
           <div className="current-player">
                 <h2>Current Player {turn + 1}</h2>
                 <div className="player-hand">
@@ -401,7 +314,6 @@ export const Game = () => {
                 </>
               )}
           </div>
-          {/* <CardDisplay cards={players[0]} title={"Player 1 cards:"} />; */}
       </div>
   );
 }
